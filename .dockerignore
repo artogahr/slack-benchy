@@ -1,0 +1,15 @@
+.venv
+.git
+.gitignore
+.pytest_cache
+.ruff_cache
+__pycache__
+*.pyc
+tests
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+.env
+result
+result-*
+.direnv

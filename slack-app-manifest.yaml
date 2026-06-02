@@ -1,0 +1,50 @@
+# Slack app manifest for prusa-slack-bot.
+#
+# How to use:
+#   1. Go to https://api.slack.com/apps and click "Create New App" → "From an app manifest".
+#   2. Pick your workspace.
+#   3. Paste the content of this file. Slack will set every scope/feature in one go.
+#   4. After creation: under "Basic Information", scroll to "App-Level Tokens" and
+#      generate a token with scope `connections:write`. That is your SLACK_APP_TOKEN
+#      (starts with xapp-). Save it.
+#   5. Under "Install App", click "Install to <workspace>". That gives you the
+#      SLACK_BOT_TOKEN (starts with xoxb-). Save that too.
+#   6. Put both tokens into your .env (see .env.example).
+#
+# If you change features in your app's settings later, mirror the change here so
+# someone re-creating from this manifest gets the same setup.
+
+display_information:
+  name: Prusa printer
+  description: Live 3D-printer status and controls in Slack, via PrusaLink and Socket Mode.
+  background_color: "#2d3748"
+features:
+  bot_user:
+    display_name: Prusa printer
+    always_online: true
+  app_home:
+    home_tab_enabled: false
+    messages_tab_enabled: false
+    messages_tab_read_only_enabled: false
+oauth_config:
+  scopes:
+    bot:
+      - chat:write
+      - chat:write.public
+      - im:write
+      - channels:read
+      - channels:join
+      - groups:read
+      - reactions:write
+      - files:write
+      - pins:write
+      - users:read
+      - im:history
+settings:
+  event_subscriptions:
+    bot_events: []
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false
