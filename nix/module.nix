@@ -25,7 +25,6 @@
 
 let
   cfg = config.services.slack-benchy;
-  pkg = cfg.package;
 in
 {
   options.services.slack-benchy = {
@@ -131,8 +130,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    services.slack-benchy.package = lib.mkDefault (pkgs.callPackage ../. { } or pkg);
-
     users.users.${cfg.user} = {
       isSystemUser = true;
       group = cfg.group;

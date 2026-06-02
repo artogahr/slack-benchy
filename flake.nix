@@ -8,8 +8,13 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     let
-      # NixOS module is system-agnostic; expose it at the top level.
-      nixosModules.default = import ./nix/module.nix;
+      # NixOS module wraps the bare module with a default package built by
+      # this flake, so users only need `imports = [ ... ];` plus their config.
+      nixosModules.default = { pkgs, lib, ... }: {
+        imports = [ ./nix/module.nix ];
+        services.slack-benchy.package =
+          lib.mkDefault self.packages.${pkgs.system}.default;
+      };
       nixosModules.slack-benchy = nixosModules.default;
     in
     {
