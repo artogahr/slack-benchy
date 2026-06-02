@@ -146,7 +146,7 @@ class PrusaLinkClient:
         self._timeout = httpx.Timeout(timeout_seconds, connect=min(5.0, timeout_seconds))
         self._client: httpx.AsyncClient | None = None
 
-    async def __aenter__(self) -> "PrusaLinkClient":
+    async def __aenter__(self) -> PrusaLinkClient:
         await self.open()
         return self
 

@@ -8,7 +8,7 @@ does not page someone every poll.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from .prusalink import (
     STATE_ERROR,
@@ -20,7 +20,7 @@ from .prusalink import (
 )
 
 
-class TransitionKind(str, Enum):
+class TransitionKind(StrEnum):
     FINISHED = "FINISHED"
     PAUSED = "PAUSED"
     RESUMED = "RESUMED"

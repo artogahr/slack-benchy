@@ -11,7 +11,13 @@ from prusa_slack_bot.prusalink import (
 from prusa_slack_bot.transitions import TransitionKind, detect_transitions
 
 
-def snap(state: str, job_key: str | None = None, file_name: str | None = None, online: bool = True, error: str | None = None) -> PrinterSnapshot:
+def snap(
+    state: str,
+    job_key: str | None = None,
+    file_name: str | None = None,
+    online: bool = True,
+    error: str | None = None,
+) -> PrinterSnapshot:
     return PrinterSnapshot(
         online=online,
         state=state,

@@ -139,7 +139,11 @@ def test_buttons_swap_inventory_always():
 
 
 def test_pause_button_only_when_printing():
-    view = render_status(snap(state=STATE_PAUSED, file_name="m.gcode", job_key="m.gcode::1"), loaded=None, age_seconds=1.0)
+    view = render_status(
+        snap(state=STATE_PAUSED, file_name="m.gcode", job_key="m.gcode::1"),
+        loaded=None,
+        age_seconds=1.0,
+    )
     action_ids = [
         el["action_id"]
         for b in view.blocks

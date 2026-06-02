@@ -11,7 +11,6 @@ from prusa_slack_bot.prusalink import (
     PrusaLinkUnreachable,
 )
 
-
 BASE = "http://printer.test"
 
 
