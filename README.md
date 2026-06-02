@@ -1,206 +1,98 @@
 # slack-benchy
 
-A self-hosted Slack bot that turns a Prusa 3D printer into a first-class citizen of your workspace. The bot shows up in Slack as **Benchy** and posts a live pinned status message, lets people opt-in to DM notifications when their print finishes, tracks which filament is loaded, and exposes pause / resume / cancel buttons. Everything runs over Slack **Socket Mode**, so the bot needs no public URL, no port forwarding, and no TLS certificate.
+A self-hosted Slack bot that surfaces a Prusa 3D printer in your workspace. Shows up in Slack as **Benchy** and maintains a live pinned status message in a channel of your choice. People can opt in to a DM when their print finishes, pauses, or errors. No public URL or port forwarding needed — it runs over Slack Socket Mode.
 
-> Single-tenant by design: you install it into **your** workspace with **your** tokens, and run it on **your** network. No "Add to Slack" button, no shared service.
-
----
-
-## What it looks like
-
-A single pinned message in the channel you choose:
-
-```
-Printer status: 🕒 Printing
-File         Calicat.gcode
-Progress     ▓▓▓▓▓▓░░░░░░ 42%
-ETA          1h 00m left
-Elapsed      30m
-🧵 Loaded: Prusament PLA Galaxy Black
-[ Track this print ] [ Swap filament ] [ Manage inventory ] [ Pause ] [ Cancel ]
-nozzle 215°C · bed 60°C
-updated 8s ago
-```
-
-If the printer hits an error, the message degrades visibly and anyone who clicked **Track this print** gets a DM. There is no channel-wide alert: people who didn't opt in don't get pinged.
-
----
+Single-tenant by design: install it into your own workspace with your own tokens, run it on a machine that can reach your printer.
 
 ## Requirements
 
-- A Prusa printer running **PrusaLink**, reachable on the local network
+- A Prusa printer running PrusaLink, reachable on the local network
 - A Slack workspace where you can install a custom app
-- A machine on the same network as the printer (Raspberry Pi, NAS, NixOS box, anything with outbound internet)
+- A host on the same network (Raspberry Pi, NAS, NixOS box, anything with outbound internet)
 
----
+## 1. Create the Slack app
 
-## 1. Create the Slack app (two tokens)
+You need two tokens. Both come from the same Slack app.
 
-You need two tokens:
+1. Open <https://api.slack.com/apps> → **Create New App → From an app manifest** → pick your workspace.
+2. Paste [`slack-app-manifest.yaml`](slack-app-manifest.yaml). Confirm. Scopes, Socket Mode, and the bot user are now set.
+3. **Basic Information → App-Level Tokens**: generate a token with scope `connections:write`. That's your `SLACK_APP_TOKEN` (`xapp-...`).
+4. **Install App → Install to Workspace**: that gives you the `SLACK_BOT_TOKEN` (`xoxb-...`).
+5. In your status channel: `/invite @Benchy`.
 
-| Token | Starts with | Where it comes from | Used for |
-|---|---|---|---|
-| Bot token | `xoxb-` | After installing the app to your workspace | Posting and updating the status message, opening DMs |
-| App-level token | `xapp-` | "App-Level Tokens" → generate with scope `connections:write` | The Socket Mode WebSocket |
+## 2. Get PrusaLink credentials
 
-Steps:
+On the printer: **Settings → Network → PrusaLink** shows the local IP and API key. Recent firmware uses the API key with the `X-Api-Key` header. Older firmware uses HTTP Digest with a username and password. Both are supported.
 
-1. Open <https://api.slack.com/apps> and click **Create New App → From an app manifest**.
-2. Pick your workspace.
-3. Paste the contents of [`slack-app-manifest.yaml`](slack-app-manifest.yaml). Confirm. Slack sets up scopes, Socket Mode, interactivity, and the bot user in one go.
-4. In the new app's settings, go to **Basic Information → App-Level Tokens** and generate a token with scope `connections:write`. Copy it (starts with `xapp-`). That's your `SLACK_APP_TOKEN`.
-5. Go to **Install App** and click **Install to Workspace**. Approve. Copy the **Bot User OAuth Token** (starts with `xoxb-`). That's your `SLACK_BOT_TOKEN`.
-6. Invite the bot to the channel where you want the live status message (`/invite @Benchy` in that channel).
+## 3. Run it
 
-If the manifest can't enable Socket Mode for your workspace policy, you'll see it during step 3. Ask your Slack admin to allow Socket Mode apps, or run the bot in HTTP mode (out of scope for this README).
+Three independent paths, all reading the same env (see [`.env.example`](.env.example)).
 
----
-
-## 2. Get your PrusaLink credentials
-
-On the printer's display: **Settings → Network → PrusaLink** shows the local IP and the API key. Most recent firmware uses an API key with the `X-Api-Key` header. Older firmware uses HTTP Digest with a username + password. The bot supports both: configure whichever you have.
-
----
-
-## 3. Pick a run path
-
-Three independent paths. All read the same environment-variable config (see [`.env.example`](.env.example)). Pick one.
-
-### Path A — Docker / Docker Compose (recommended default)
-
-No Nix, no system-level Python. Works on Raspberry Pi (arm64) and any amd64 box.
+### Docker Compose (recommended)
 
 ```sh
 git clone https://github.com/artogahr/slack-benchy.git
 cd slack-benchy
-cp .env.example .env
-# Edit .env: fill in SLACK_BOT_TOKEN, SLACK_APP_TOKEN, SLACK_STATUS_CHANNEL,
-# PRUSALINK_HOST, PRUSALINK_API_KEY.
+cp .env.example .env   # fill in the five required vars
 docker compose up -d
 docker compose logs -f
 ```
 
-The state DB lives in the `benchy-state` named volume, so it survives container or host restarts.
+Multi-arch image (`linux/amd64`, `linux/arm64`) is published to `ghcr.io/artogahr/slack-benchy`. State persists in the `benchy-state` named volume.
 
-If you'd rather build the image yourself, in `docker-compose.yml` comment out the `image:` line and uncomment `build: .`.
-
-### Path B — Native install (no Nix, no Docker)
-
-Standard Python install. Good for Raspberry Pi OS and Debian.
+### Native install with systemd
 
 ```sh
 sudo useradd --system --home /var/lib/slack-benchy --create-home prusabot
 sudo -u prusabot bash -lc '
   cd /var/lib/slack-benchy
   python3 -m venv .venv
-  .venv/bin/pip install --upgrade pip
   .venv/bin/pip install git+https://github.com/artogahr/slack-benchy.git
 '
-sudo cp .env.example /etc/slack-benchy.env   # then edit it
-sudo chmod 600 /etc/slack-benchy.env
+sudo cp .env.example /etc/slack-benchy.env && sudo chmod 600 /etc/slack-benchy.env   # edit it
 sudo cp systemd/slack-benchy.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now slack-benchy.service
-sudo journalctl -u slack-benchy -f
+sudo systemctl daemon-reload && sudo systemctl enable --now slack-benchy
 ```
 
-### Path C — Nix flake + NixOS module
-
-The most reproducible path, for NixOS users who already use `sops-nix` or `agenix`.
+### Nix flake + NixOS module
 
 ```nix
-{
-  inputs.slack-benchy.url = "github:artogahr/slack-benchy";
+inputs.slack-benchy.url = "github:artogahr/slack-benchy";
 
-  outputs = { self, nixpkgs, slack-benchy, ... }: {
-    nixosConfigurations.printerpi = nixpkgs.lib.nixosSystem {
-      system = "aarch64-linux";
-      modules = [
-        slack-benchy.nixosModules.default
-        ({ config, ... }: {
-          services.slack-benchy = {
-            enable = true;
-            statusChannel = "#printer";
-            printerHost = "192.168.1.50";
-            tokenFile.slackBotToken   = config.sops.secrets."prusa/slack-bot-token".path;
-            tokenFile.slackAppToken   = config.sops.secrets."prusa/slack-app-token".path;
-            tokenFile.prusalinkApiKey = config.sops.secrets."prusa/prusalink-api-key".path;
-          };
-        })
-      ];
-    };
-  };
-}
+# in your NixOS config:
+imports = [ slack-benchy.nixosModules.default ];
+services.slack-benchy = {
+  enable = true;
+  statusChannel = "#printer";
+  printerHost = "192.168.1.50";
+  tokenFile.slackBotToken   = config.sops.secrets."benchy/slack-bot-token".path;
+  tokenFile.slackAppToken   = config.sops.secrets."benchy/slack-app-token".path;
+  tokenFile.prusalinkApiKey = config.sops.secrets."benchy/prusalink-api-key".path;
+};
 ```
 
-Secrets are loaded via systemd's `LoadCredential`, so they never end up in `/nix/store` or `systemctl show` output. A dev shell is available via `nix develop` — it gives you `uv`, Python 3.12, and `ruff`.
-
-Nix is **never required**: Paths A and B are first-class.
-
----
+Secrets load via systemd `LoadCredential`, so they never reach `/nix/store` or `systemctl show`. Nix is optional; the Docker and native paths work without it.
 
 ## Configuration
 
-All settings come from environment variables. See [`.env.example`](.env.example) for the full list. The important ones:
+Required env vars: `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_STATUS_CHANNEL`, `PRUSALINK_HOST`, and either `PRUSALINK_API_KEY` or `PRUSALINK_USERNAME`+`PRUSALINK_PASSWORD`. See [`.env.example`](.env.example) for everything else (poll interval, offline threshold, cancel policy, filament inventory seed).
 
-| Variable | Default | Notes |
-|---|---|---|
-| `SLACK_BOT_TOKEN` | required | `xoxb-...` |
-| `SLACK_APP_TOKEN` | required | `xapp-...` |
-| `SLACK_STATUS_CHANNEL` | required | `#printer` or `C0123ABCDE` |
-| `PRUSALINK_HOST` | required | IP, hostname, or full URL |
-| `PRUSALINK_API_KEY` | one of these is required | Plain API key from PrusaLink settings |
-| `PRUSALINK_USERNAME` / `PRUSALINK_PASSWORD` | one of these is required | HTTP Digest credentials (older firmware) |
-| `POLL_INTERVAL_SECONDS` | `30` | How often to poll the printer |
-| `OFFLINE_AFTER_FAILURES` | `4` | Consecutive failures before flipping to OFFLINE |
-| `DB_PATH` | `./slack-benchy.sqlite3` | SQLite state file |
-| `CANCEL_POLICY` | `anyone` | Or `starter_only` (only the first tracker can cancel) |
-| `WEBCAM_MODE` | `auto` | `auto`, `on`, `off` |
-| `FILAMENT_INVENTORY_SEED` | empty | Comma-separated list of spools to create on first run |
+On boot the bot validates the config and prints a human-readable error if something is wrong.
 
-On boot the bot validates everything and prints a human-readable error if something is missing or unreachable.
+## Known limitations
 
----
+- "Currently loaded filament" is bookkeeping (what someone told Benchy), not a sensor reading. PrusaLink cannot identify the physical spool.
+- 30s polling can miss sub-30s state blips.
+- v1 is single-printer per instance.
 
-## What it actually does
+## Contributing
 
-- **Live status message**: pinned in your chosen channel, updated on real change (state, ETA delta, ~5% progress), with a 30s heartbeat. Edits are debounced so we don't flap or burn rate limit.
-- **Filament tracking**: bookkeeping only. The bot remembers what *you said* is loaded; PrusaLink can't see the spool. If the printer reports a material that disagrees with what you said is loaded, the status line shows a warning.
-- **Opt-in DMs**: anyone in the channel can hit **Track this print**. Trackers get a DM when the print finishes, pauses, errors, or is cancelled. No channel-wide alerts.
-- **Job control**: pause / resume / cancel buttons. Cancel goes through a confirmation modal that names the file, and re-verifies the same job is still running before acting.
-- **Resilience**: a single bad poll is transient. The bot only flips to OFFLINE after several consecutive failures, and recovers automatically. Tokens are scrubbed from logs.
-- **Single instance**: a file lock prevents two copies from updating the same message and flapping.
+See [`CLAUDE.md`](CLAUDE.md) for conventions and [`ARCHITECTURE.md`](ARCHITECTURE.md) for the design spec.
 
-## What it doesn't do
+## Attribution
 
-- It's **not** a hosted multi-workspace service.
-- "Currently loaded filament" is honest bookkeeping, not a sensor reading.
-- 30s polling can miss sub-30s state blips (a momentary pause that auto-resumes).
-- v1 is single-printer per instance. The data model treats a printer as a list of one, so adding multi-printer support later is config work, not a refactor.
-
----
-
-## Development
-
-```sh
-uv venv --python 3.12
-uv pip install -e '.[dev]'
-.venv/bin/pytest -q
-.venv/bin/ruff check src tests
-```
-
-The test suite covers the pure logic exhaustively (config parsing, input sanitization, transition detection, status rendering, debounce decisions) and uses fakes for the integration-shaped tests (poller, DB).
-
-Architecture notes are in [`ARCHITECTURE.md`](ARCHITECTURE.md). Behavior is whatever the tests say it is.
-
----
-
-## Releases
-
-Tagged releases publish a multi-arch container image to `ghcr.io/artogahr/slack-benchy:vX.Y.Z` (linux/amd64 + linux/arm64) and attach a Python wheel to the GitHub release. Versions are bumped automatically by [release-please](https://github.com/googleapis/release-please) — merging the release PR it opens cuts a new tag.
-
----
+This project was built by [Claude](https://claude.com/claude-code) (Anthropic's coding assistant) under manual human review.
 
 ## License
 
-[MIT](LICENSE). Contributions welcome.
+[MIT](LICENSE).
