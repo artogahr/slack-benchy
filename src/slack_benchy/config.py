@@ -111,7 +111,7 @@ def load_config(env: dict[str, str] | None = None) -> Config:
         prusalink_password=pw,
         poll_interval_seconds=_int(e, "POLL_INTERVAL_SECONDS", 30, minimum=5),
         offline_after_failures=_int(e, "OFFLINE_AFTER_FAILURES", 4),
-        db_path=Path(_get(e, "DB_PATH", "./prusa-slack-bot.sqlite3") or "./prusa-slack-bot.sqlite3"),
+        db_path=Path(_get(e, "DB_PATH", "./slack-benchy.sqlite3") or "./slack-benchy.sqlite3"),
         cancel_policy=cancel,
         webcam_mode=webcam,
         filament_inventory_seed=seed,

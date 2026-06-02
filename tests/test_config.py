@@ -1,6 +1,6 @@
 import pytest
 
-from prusa_slack_bot.config import ConfigError, load_config
+from slack_benchy.config import ConfigError, load_config
 
 
 def _base_env(**overrides):

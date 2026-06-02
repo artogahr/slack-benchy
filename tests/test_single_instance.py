@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from prusa_slack_bot.single_instance import AlreadyRunning, SingleInstanceLock
+from slack_benchy.single_instance import AlreadyRunning, SingleInstanceLock
 
 
 def test_lock_blocks_second_acquirer(tmp_path: Path):

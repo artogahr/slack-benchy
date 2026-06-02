@@ -1,5 +1,5 @@
 {
-  description = "Prusa printer Slack bot — Socket Mode + PrusaLink, self-hosted, single-tenant.";
+  description = "slack-benchy: Benchy in Slack, talking to a Prusa printer via PrusaLink. Socket Mode, self-hosted, single-tenant.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -10,7 +10,7 @@
     let
       # NixOS module is system-agnostic; expose it at the top level.
       nixosModules.default = import ./nix/module.nix;
-      nixosModules.prusa-slack-bot = nixosModules.default;
+      nixosModules.slack-benchy = nixosModules.default;
     in
     {
       inherit nixosModules;
@@ -18,8 +18,8 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        prusa-slack-bot = pkgs.python3Packages.buildPythonApplication {
-          pname = "prusa-slack-bot";
+        slack-benchy = pkgs.python3Packages.buildPythonApplication {
+          pname = "slack-benchy";
           version = "0.1.0";
           src = ./.;
           pyproject = true;
@@ -37,16 +37,16 @@
           meta = with pkgs.lib; {
             description = "Slack bot for Prusa 3D printers via PrusaLink + Socket Mode";
             license = licenses.mit;
-            mainProgram = "prusa-slack-bot";
+            mainProgram = "slack-benchy";
           };
         };
       in
       {
-        packages.default = prusa-slack-bot;
-        packages.prusa-slack-bot = prusa-slack-bot;
+        packages.default = slack-benchy;
+        packages.slack-benchy = slack-benchy;
 
         apps.default = flake-utils.lib.mkApp {
-          drv = prusa-slack-bot;
+          drv = slack-benchy;
         };
 
         devShells.default = pkgs.mkShell {
@@ -56,10 +56,10 @@
             ruff
           ];
           shellHook = ''
-            echo "prusa-slack-bot dev shell"
+            echo "slack-benchy dev shell"
             echo "  Setup: uv venv && uv pip install -e '.[dev]'"
             echo "  Test:  .venv/bin/pytest -q"
-            echo "  Run:   set -a; source .env; set +a; .venv/bin/python -m prusa_slack_bot"
+            echo "  Run:   set -a; source .env; set +a; .venv/bin/python -m slack_benchy"
             echo ""
             echo "Never put real secrets in shell.nix or flake.nix — use sops-nix or"
             echo "agenix when deploying via the NixOS module."

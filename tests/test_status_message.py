@@ -1,5 +1,5 @@
-from prusa_slack_bot.db import Filament
-from prusa_slack_bot.prusalink import (
+from slack_benchy.db import Filament
+from slack_benchy.prusalink import (
     STATE_ERROR,
     STATE_IDLE,
     STATE_OFFLINE,
@@ -7,7 +7,7 @@ from prusa_slack_bot.prusalink import (
     STATE_PRINTING,
     PrinterSnapshot,
 )
-from prusa_slack_bot.status_message import render_status, should_update
+from slack_benchy.status_message import render_status, should_update
 
 
 def snap(**overrides) -> PrinterSnapshot:

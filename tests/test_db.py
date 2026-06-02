@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from prusa_slack_bot.db import Database, DuplicateFilament, InventoryFull
-from prusa_slack_bot.sanitize import MAX_INVENTORY
+from slack_benchy.db import Database, DuplicateFilament, InventoryFull
+from slack_benchy.sanitize import MAX_INVENTORY
 
 
 @pytest.fixture

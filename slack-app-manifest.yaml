@@ -1,4 +1,4 @@
-# Slack app manifest for prusa-slack-bot.
+# Slack app manifest for slack-benchy.
 #
 # How to use:
 #   1. Go to https://api.slack.com/apps and click "Create New App" → "From an app manifest".
@@ -15,12 +15,12 @@
 # someone re-creating from this manifest gets the same setup.
 
 display_information:
-  name: Prusa printer
+  name: Benchy
   description: Live 3D-printer status and controls in Slack, via PrusaLink and Socket Mode.
   background_color: "#2d3748"
 features:
   bot_user:
-    display_name: Prusa printer
+    display_name: Benchy
     always_online: true
   app_home:
     home_tab_enabled: false

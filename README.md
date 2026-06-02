@@ -1,6 +1,6 @@
-# prusa-slack-bot
+# slack-benchy
 
-A self-hosted Slack bot that turns a Prusa 3D printer into a first-class citizen of your workspace. It shows live status in a pinned message, lets people opt-in to DM notifications when their print finishes, tracks which filament is loaded, and exposes pause / resume / cancel buttons. Everything runs over Slack **Socket Mode**, so the bot needs no public URL, no port forwarding, and no TLS certificate.
+A self-hosted Slack bot that turns a Prusa 3D printer into a first-class citizen of your workspace. The bot shows up in Slack as **Benchy** and posts a live pinned status message, lets people opt-in to DM notifications when their print finishes, tracks which filament is loaded, and exposes pause / resume / cancel buttons. Everything runs over Slack **Socket Mode**, so the bot needs no public URL, no port forwarding, and no TLS certificate.
 
 > Single-tenant by design: you install it into **your** workspace with **your** tokens, and run it on **your** network. No "Add to Slack" button, no shared service.
 
@@ -50,7 +50,7 @@ Steps:
 3. Paste the contents of [`slack-app-manifest.yaml`](slack-app-manifest.yaml). Confirm. Slack sets up scopes, Socket Mode, interactivity, and the bot user in one go.
 4. In the new app's settings, go to **Basic Information → App-Level Tokens** and generate a token with scope `connections:write`. Copy it (starts with `xapp-`). That's your `SLACK_APP_TOKEN`.
 5. Go to **Install App** and click **Install to Workspace**. Approve. Copy the **Bot User OAuth Token** (starts with `xoxb-`). That's your `SLACK_BOT_TOKEN`.
-6. Invite the bot to the channel where you want the live status message (`/invite @Prusa printer` in that channel).
+6. Invite the bot to the channel where you want the live status message (`/invite @Benchy` in that channel).
 
 If the manifest can't enable Socket Mode for your workspace policy, you'll see it during step 3. Ask your Slack admin to allow Socket Mode apps, or run the bot in HTTP mode (out of scope for this README).
 
@@ -71,8 +71,8 @@ Three independent paths. All read the same environment-variable config (see [`.e
 No Nix, no system-level Python. Works on Raspberry Pi (arm64) and any amd64 box.
 
 ```sh
-git clone https://github.com/your-org/prusa-slack-bot.git
-cd prusa-slack-bot
+git clone https://github.com/artogahr/slack-benchy.git
+cd slack-benchy
 cp .env.example .env
 # Edit .env: fill in SLACK_BOT_TOKEN, SLACK_APP_TOKEN, SLACK_STATUS_CHANNEL,
 # PRUSALINK_HOST, PRUSALINK_API_KEY.
@@ -80,7 +80,7 @@ docker compose up -d
 docker compose logs -f
 ```
 
-The state DB lives in the `prusa-bot-state` named volume, so it survives container or host restarts.
+The state DB lives in the `benchy-state` named volume, so it survives container or host restarts.
 
 If you'd rather build the image yourself, in `docker-compose.yml` comment out the `image:` line and uncomment `build: .`.
 
@@ -89,19 +89,19 @@ If you'd rather build the image yourself, in `docker-compose.yml` comment out th
 Standard Python install. Good for Raspberry Pi OS and Debian.
 
 ```sh
-sudo useradd --system --home /var/lib/prusa-slack-bot --create-home prusabot
+sudo useradd --system --home /var/lib/slack-benchy --create-home prusabot
 sudo -u prusabot bash -lc '
-  cd /var/lib/prusa-slack-bot
+  cd /var/lib/slack-benchy
   python3 -m venv .venv
   .venv/bin/pip install --upgrade pip
-  .venv/bin/pip install git+https://github.com/your-org/prusa-slack-bot.git
+  .venv/bin/pip install git+https://github.com/artogahr/slack-benchy.git
 '
-sudo cp .env.example /etc/prusa-slack-bot.env   # then edit it
-sudo chmod 600 /etc/prusa-slack-bot.env
-sudo cp systemd/prusa-slack-bot.service /etc/systemd/system/
+sudo cp .env.example /etc/slack-benchy.env   # then edit it
+sudo chmod 600 /etc/slack-benchy.env
+sudo cp systemd/slack-benchy.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now prusa-slack-bot.service
-sudo journalctl -u prusa-slack-bot -f
+sudo systemctl enable --now slack-benchy.service
+sudo journalctl -u slack-benchy -f
 ```
 
 ### Path C — Nix flake + NixOS module
@@ -110,15 +110,15 @@ The most reproducible path, for NixOS users who already use `sops-nix` or `ageni
 
 ```nix
 {
-  inputs.prusa-slack-bot.url = "github:your-org/prusa-slack-bot";
+  inputs.slack-benchy.url = "github:artogahr/slack-benchy";
 
-  outputs = { self, nixpkgs, prusa-slack-bot, ... }: {
+  outputs = { self, nixpkgs, slack-benchy, ... }: {
     nixosConfigurations.printerpi = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
       modules = [
-        prusa-slack-bot.nixosModules.default
+        slack-benchy.nixosModules.default
         ({ config, ... }: {
-          services.prusa-slack-bot = {
+          services.slack-benchy = {
             enable = true;
             statusChannel = "#printer";
             printerHost = "192.168.1.50";
@@ -153,7 +153,7 @@ All settings come from environment variables. See [`.env.example`](.env.example)
 | `PRUSALINK_USERNAME` / `PRUSALINK_PASSWORD` | one of these is required | HTTP Digest credentials (older firmware) |
 | `POLL_INTERVAL_SECONDS` | `30` | How often to poll the printer |
 | `OFFLINE_AFTER_FAILURES` | `4` | Consecutive failures before flipping to OFFLINE |
-| `DB_PATH` | `./prusa-slack-bot.sqlite3` | SQLite state file |
+| `DB_PATH` | `./slack-benchy.sqlite3` | SQLite state file |
 | `CANCEL_POLICY` | `anyone` | Or `starter_only` (only the first tracker can cancel) |
 | `WEBCAM_MODE` | `auto` | `auto`, `on`, `off` |
 | `FILAMENT_INVENTORY_SEED` | empty | Comma-separated list of spools to create on first run |
@@ -191,13 +191,13 @@ uv pip install -e '.[dev]'
 
 The test suite covers the pure logic exhaustively (config parsing, input sanitization, transition detection, status rendering, debounce decisions) and uses fakes for the integration-shaped tests (poller, DB).
 
-Architecture notes are in [`prusa-slack-bot-architecture.md`](prusa-slack-bot-architecture.md). Behavior is whatever the tests say it is.
+Architecture notes are in [`ARCHITECTURE.md`](ARCHITECTURE.md). Behavior is whatever the tests say it is.
 
 ---
 
 ## Releases
 
-Tagged releases publish a multi-arch container image to `ghcr.io/your-org/prusa-slack-bot:vX.Y.Z` (linux/amd64 + linux/arm64) and attach a Python wheel to the GitHub release. Versions are bumped automatically by [release-please](https://github.com/googleapis/release-please) — merging the release PR it opens cuts a new tag.
+Tagged releases publish a multi-arch container image to `ghcr.io/artogahr/slack-benchy:vX.Y.Z` (linux/amd64 + linux/arm64) and attach a Python wheel to the GitHub release. Versions are bumped automatically by [release-please](https://github.com/googleapis/release-please) — merging the release PR it opens cuts a new tag.
 
 ---
 

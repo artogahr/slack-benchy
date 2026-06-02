@@ -1,6 +1,6 @@
 import pytest
 
-from prusa_slack_bot.sanitize import (
+from slack_benchy.sanitize import (
     MAX_FILAMENT_NAME,
     SanitizeError,
     normalized_key,

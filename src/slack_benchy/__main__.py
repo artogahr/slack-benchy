@@ -18,7 +18,7 @@ from .prusalink import PrusaLinkClient, PrusaLinkUnreachable
 from .single_instance import AlreadyRunning, SingleInstanceLock
 from .slack_app import BotApp
 
-logger = logging.getLogger("prusa_slack_bot")
+logger = logging.getLogger("slack_benchy")
 
 
 async def _validate_connectivity(client: PrusaLinkClient) -> None:
@@ -49,7 +49,7 @@ async def run() -> int:
             config.prusalink_password or "",
         ],
     )
-    logger.info("prusa-slack-bot starting (poll every %ds)", config.poll_interval_seconds)
+    logger.info("slack-benchy starting (poll every %ds)", config.poll_interval_seconds)
 
     lock = SingleInstanceLock(config.db_path.with_suffix(config.db_path.suffix + ".lock"))
     try:

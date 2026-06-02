@@ -1,14 +1,14 @@
-# NixOS module for prusa-slack-bot.
+# NixOS module for slack-benchy.
 #
 # Usage in a flake:
 #
-#   inputs.prusa-slack-bot.url = "github:your-org/prusa-slack-bot";
+#   inputs.slack-benchy.url = "github:artogahr/slack-benchy";
 #
 #   nixosConfigurations.printerpi = nixpkgs.lib.nixosSystem {
 #     modules = [
-#       prusa-slack-bot.nixosModules.default
+#       slack-benchy.nixosModules.default
 #       ({ ... }: {
-#         services.prusa-slack-bot = {
+#         services.slack-benchy = {
 #           enable = true;
 #           statusChannel = "#printer";
 #           printerHost = "192.168.1.50";
@@ -24,16 +24,16 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.services.prusa-slack-bot;
+  cfg = config.services.slack-benchy;
   pkg = cfg.package;
 in
 {
-  options.services.prusa-slack-bot = {
-    enable = lib.mkEnableOption "prusa-slack-bot service";
+  options.services.slack-benchy = {
+    enable = lib.mkEnableOption "slack-benchy service";
 
     package = lib.mkOption {
       type = lib.types.package;
-      description = "The prusa-slack-bot package to run.";
+      description = "The slack-benchy package to run.";
     };
 
     user = lib.mkOption {
@@ -50,7 +50,7 @@ in
 
     stateDir = lib.mkOption {
       type = lib.types.path;
-      default = "/var/lib/prusa-slack-bot";
+      default = "/var/lib/slack-benchy";
       description = "Directory holding the SQLite database and lock file.";
     };
 
@@ -131,7 +131,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    services.prusa-slack-bot.package = lib.mkDefault (pkgs.callPackage ../. { } or pkg);
+    services.slack-benchy.package = lib.mkDefault (pkgs.callPackage ../. { } or pkg);
 
     users.users.${cfg.user} = {
       isSystemUser = true;
@@ -145,8 +145,8 @@ in
       "d ${cfg.stateDir} 0750 ${cfg.user} ${cfg.group} -"
     ];
 
-    systemd.services.prusa-slack-bot = {
-      description = "Prusa printer Slack bot";
+    systemd.services.slack-benchy = {
+      description = "slack-benchy: Slack bot for Prusa 3D printers";
       wantedBy = [ "multi-user.target" ];
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
@@ -154,7 +154,7 @@ in
       environment =
         let
           base = {
-            DB_PATH = "${cfg.stateDir}/prusa-slack-bot.sqlite3";
+            DB_PATH = "${cfg.stateDir}/slack-benchy.sqlite3";
             SLACK_STATUS_CHANNEL = cfg.statusChannel;
             PRUSALINK_HOST = cfg.printerHost;
             POLL_INTERVAL_SECONDS = toString cfg.pollIntervalSeconds;
@@ -193,7 +193,7 @@ in
           ++ lib.optional (cfg.tokenFile.prusalinkPasswordFile != null)
             "prusalink-password:${cfg.tokenFile.prusalinkPasswordFile}";
 
-        ExecStart = pkgs.writeShellScript "prusa-slack-bot-start" ''
+        ExecStart = pkgs.writeShellScript "slack-benchy-start" ''
           set -eu
           export SLACK_BOT_TOKEN="$(cat "$CREDENTIALS_DIRECTORY/slack-bot-token")"
           export SLACK_APP_TOKEN="$(cat "$CREDENTIALS_DIRECTORY/slack-app-token")"
@@ -203,7 +203,7 @@ in
           if [ -f "$CREDENTIALS_DIRECTORY/prusalink-password" ]; then
             export PRUSALINK_PASSWORD="$(cat "$CREDENTIALS_DIRECTORY/prusalink-password")"
           fi
-          exec ${cfg.package}/bin/prusa-slack-bot
+          exec ${cfg.package}/bin/slack-benchy
         '';
 
         # Hardening

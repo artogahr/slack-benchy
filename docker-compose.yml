@@ -4,29 +4,29 @@
 #   1. Copy .env.example to .env and fill in your Slack + PrusaLink secrets.
 #   2. Make sure the printer's PrusaLink IP is reachable from this host.
 #
-# State (the SQLite DB) is kept in the named volume `prusa-bot-state`, so it
+# State (the SQLite DB) is kept in the named volume `benchy-state`, so it
 # survives container/host restarts and image upgrades.
 
 services:
-  prusa-slack-bot:
-    image: ghcr.io/your-org/prusa-slack-bot:latest
+  slack-benchy:
+    image: ghcr.io/artogahr/slack-benchy:latest
     # If you build locally instead of pulling, comment the image: line above
     # and uncomment build:
     # build: .
-    container_name: prusa-slack-bot
+    container_name: slack-benchy
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - prusa-bot-state:/var/lib/prusa-slack-bot
+      - benchy-state:/var/lib/slack-benchy
     # The bot only makes outbound connections (WebSocket to Slack, HTTP to
     # the printer on the LAN). No published ports needed.
     healthcheck:
-      test: ["CMD", "python", "-c", "import prusa_slack_bot"]
+      test: ["CMD", "python", "-c", "import slack_benchy"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 20s
 
 volumes:
-  prusa-bot-state:
+  benchy-state:

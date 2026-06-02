@@ -1,6 +1,6 @@
 import logging
 
-from prusa_slack_bot.logging_setup import RedactionFilter
+from slack_benchy.logging_setup import RedactionFilter
 
 
 def _record(msg: str) -> logging.LogRecord:

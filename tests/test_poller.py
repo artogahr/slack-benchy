@@ -8,9 +8,9 @@ from typing import Any
 
 import pytest
 
-from prusa_slack_bot.db import Database
-from prusa_slack_bot.poller import Poller
-from prusa_slack_bot.prusalink import (
+from slack_benchy.db import Database
+from slack_benchy.poller import Poller
+from slack_benchy.prusalink import (
     STATE_FINISHED,
     STATE_IDLE,
     STATE_OFFLINE,
@@ -19,7 +19,7 @@ from prusa_slack_bot.prusalink import (
     PrusaLinkAuthError,
     PrusaLinkUnreachable,
 )
-from prusa_slack_bot.transitions import TransitionEvent, TransitionKind
+from slack_benchy.transitions import TransitionEvent, TransitionKind
 
 
 def _snap(state: str, job_key: str | None = None, file_name: str | None = None, online: bool = True) -> PrinterSnapshot:

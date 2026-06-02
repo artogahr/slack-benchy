@@ -31,7 +31,7 @@ class SingleInstanceLock:
             self._fh.close()
             self._fh = None
             raise AlreadyRunning(
-                f"Another prusa-slack-bot instance holds {self._path}. "
+                f"Another slack-benchy instance holds {self._path}. "
                 "Refusing to start a second copy — it would flap the status message."
             ) from exc
         self._fh.write(f"{__import__('os').getpid()}\n")

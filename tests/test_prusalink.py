@@ -2,7 +2,7 @@ import httpx
 import pytest
 import respx
 
-from prusa_slack_bot.prusalink import (
+from slack_benchy.prusalink import (
     STATE_FINISHED,
     STATE_IDLE,
     STATE_PRINTING,

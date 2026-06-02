@@ -1,0 +1,52 @@
+# Sample systemd unit for Path B (native install on Raspberry Pi OS / Debian).
+#
+# Install:
+#   sudo cp systemd/slack-benchy.service /etc/systemd/system/
+#   sudo cp .env.example /etc/slack-benchy.env  # then edit it
+#   sudo chmod 600 /etc/slack-benchy.env
+#   sudo useradd --system --home /var/lib/slack-benchy --create-home prusabot
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now slack-benchy.service
+#
+# This unit assumes you've installed the package as user `prusabot` with
+# something like `pipx install slack-benchy` or via a venv at
+# /var/lib/slack-benchy/.venv. Adjust ExecStart to taste.
+
+[Unit]
+Description=slack-benchy: Slack bot for Prusa 3D printers
+Documentation=https://github.com/artogahr/slack-benchy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=prusabot
+Group=prusabot
+WorkingDirectory=/var/lib/slack-benchy
+EnvironmentFile=/etc/slack-benchy.env
+Environment=DB_PATH=/var/lib/slack-benchy/slack-benchy.sqlite3
+ExecStart=/var/lib/slack-benchy/.venv/bin/python -m prusa_slack_bot
+Restart=on-failure
+RestartSec=10s
+KillSignal=SIGTERM
+TimeoutStopSec=15s
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/slack-benchy
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

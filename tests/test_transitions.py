@@ -1,4 +1,4 @@
-from prusa_slack_bot.prusalink import (
+from slack_benchy.prusalink import (
     STATE_ERROR,
     STATE_FINISHED,
     STATE_IDLE,
@@ -8,7 +8,7 @@ from prusa_slack_bot.prusalink import (
     STATE_STOPPED,
     PrinterSnapshot,
 )
-from prusa_slack_bot.transitions import TransitionKind, detect_transitions
+from slack_benchy.transitions import TransitionKind, detect_transitions
 
 
 def snap(

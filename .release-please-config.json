@@ -21,11 +21,11 @@
   ],
   "packages": {
     ".": {
-      "package-name": "prusa-slack-bot",
+      "package-name": "slack-benchy",
       "extra-files": [
         {
           "type": "generic",
-          "path": "src/prusa_slack_bot/__init__.py"
+          "path": "src/slack_benchy/__init__.py"
         }
       ]
     }

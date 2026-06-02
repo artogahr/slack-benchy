@@ -1,4 +1,4 @@
-# prusa-slack-bot — Architecture & Build Specification
+# slack-benchy — Architecture & Build Specification
 
 > This document is a build spec. It describes a Slack bot that surfaces a Prusa
 > 3D printer's status in a Slack workspace and lets people interact with it. It
