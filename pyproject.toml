@@ -1,6 +1,6 @@
 [project]
 name = "slack-benchy"
-version = "0.1.0"
+version = "0.2.0"
 description = "Slack bot that surfaces a Prusa 3D printer in Slack via Socket Mode and PrusaLink."
 readme = "README.md"
 license = { text = "MIT" }
