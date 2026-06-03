@@ -17,7 +17,7 @@
 display_information:
   name: Benchy
   description: Live 3D-printer status and controls in Slack, via PrusaLink and Socket Mode.
-  background_color: "#2d3748"
+  background_color: "#FA6831"  # Prusa orange
   # Replace the Purpose and Owner lines below before submitting for approval.
   # Some IT teams require both fields on every Slack app; harmless to fill in
   # even if yours doesn't.

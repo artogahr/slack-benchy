@@ -1,13 +1,23 @@
 from slack_benchy.db import Filament
 from slack_benchy.prusalink import (
     STATE_ERROR,
+    STATE_FINISHED,
     STATE_IDLE,
     STATE_OFFLINE,
     STATE_PAUSED,
     STATE_PRINTING,
     PrinterSnapshot,
 )
-from slack_benchy.status_message import render_status, should_update
+from slack_benchy.status_message import (
+    COLOR_AMBER,
+    COLOR_GRAY,
+    COLOR_GREEN,
+    COLOR_OFFLINE,
+    COLOR_RED,
+    PRUSA_ORANGE,
+    render_status,
+    should_update,
+)
 
 
 def snap(**overrides) -> PrinterSnapshot:
@@ -162,6 +172,46 @@ def test_file_name_with_slack_mention_is_neutered():
     )
     text = _all_text(view.blocks)
     assert "<!channel>" not in text
+
+
+# color tests
+
+def test_printing_uses_prusa_orange():
+    view = render_status(
+        snap(state=STATE_PRINTING, file_name="m.gcode", job_key="m.gcode::1"),
+        loaded=None,
+        age_seconds=1.0,
+    )
+    assert view.color == PRUSA_ORANGE
+
+
+def test_paused_uses_amber():
+    view = render_status(
+        snap(state=STATE_PAUSED, file_name="m.gcode", job_key="m.gcode::1"),
+        loaded=None,
+        age_seconds=1.0,
+    )
+    assert view.color == COLOR_AMBER
+
+
+def test_finished_uses_green():
+    view = render_status(snap(state=STATE_FINISHED), loaded=None, age_seconds=1.0)
+    assert view.color == COLOR_GREEN
+
+
+def test_error_uses_red():
+    view = render_status(snap(state=STATE_ERROR, error_message="hot"), loaded=None, age_seconds=1.0)
+    assert view.color == COLOR_RED
+
+
+def test_idle_uses_gray():
+    view = render_status(snap(state=STATE_IDLE), loaded=None, age_seconds=1.0)
+    assert view.color == COLOR_GRAY
+
+
+def test_offline_uses_offline_gray():
+    view = render_status(snap(state=STATE_OFFLINE, online=False), loaded=None, age_seconds=1.0)
+    assert view.color == COLOR_OFFLINE
 
 
 # should_update tests

@@ -26,11 +26,33 @@ ETA_DELTA_SECONDS_FOR_UPDATE = 300   # 5 min
 STALE_AFTER_SECONDS = 90             # warn footer
 DEGRADED_AFTER_SECONDS = 5 * 60      # visible degradation banner
 
+# Prusa-orange accent for the live status message, plus state-aware variants.
+# Slack's attachment `color` field renders as a left border on the message.
+PRUSA_ORANGE = "#FA6831"
+COLOR_AMBER = "#F2C744"
+COLOR_GREEN = "#2EB67D"
+COLOR_RED = "#E01E5A"
+COLOR_GRAY = "#717274"
+COLOR_OFFLINE = "#4A4A4A"
+
+_STATE_COLOR = {
+    STATE_PRINTING: PRUSA_ORANGE,
+    STATE_BUSY: PRUSA_ORANGE,
+    STATE_ATTENTION: PRUSA_ORANGE,
+    STATE_PAUSED: COLOR_AMBER,
+    STATE_FINISHED: COLOR_GREEN,
+    STATE_ERROR: COLOR_RED,
+    STATE_IDLE: COLOR_GRAY,
+    STATE_STOPPED: COLOR_GRAY,
+    STATE_OFFLINE: COLOR_OFFLINE,
+}
+
 
 @dataclass(frozen=True)
 class StatusView:
     text: str
     blocks: list[dict[str, Any]]
+    color: str = PRUSA_ORANGE
 
 
 _STATE_ICON = {
@@ -76,7 +98,7 @@ def render_status(
         )
         blocks.append(_actions_block(snapshot, is_tracking_label))
         blocks.append(_freshness_block(age_seconds))
-        return StatusView(text="Printer offline", blocks=blocks)
+        return StatusView(text="Printer offline", blocks=blocks, color=COLOR_OFFLINE)
 
     # Active-print details
     if snapshot.file_name:
@@ -153,7 +175,8 @@ def render_status(
     blocks.append(_freshness_block(age_seconds))
 
     text = _fallback_text(snapshot, loaded)
-    return StatusView(text=text, blocks=blocks)
+    color = _STATE_COLOR.get(snapshot.state, PRUSA_ORANGE)
+    return StatusView(text=text, blocks=blocks, color=color)
 
 
 def should_update(

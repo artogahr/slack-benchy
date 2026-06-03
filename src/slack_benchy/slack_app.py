@@ -85,12 +85,16 @@ class StatusMessenger:
             if not self._channel_id or not self._ts:
                 return
             view = render_status(snapshot, loaded, age_seconds)
+            # Wrap the blocks in a legacy attachment so the `color` field
+            # paints the left border. Still uses modern Block Kit inside.
+            attachments = [{"color": view.color, "blocks": view.blocks}]
             try:
                 await self._app.client.chat_update(
                     channel=self._channel_id,
                     ts=self._ts,
                     text=view.text,
-                    blocks=view.blocks,
+                    attachments=attachments,
+                    blocks=[],
                 )
             except SlackApiError as exc:
                 code = exc.response.get("error") if exc.response else "?"
