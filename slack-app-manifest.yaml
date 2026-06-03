@@ -18,6 +18,21 @@ display_information:
   name: Benchy
   description: Live 3D-printer status and controls in Slack, via PrusaLink and Socket Mode.
   background_color: "#2d3748"
+  # Replace the Purpose and Owner lines below before submitting for approval.
+  # Some IT teams require both fields on every Slack app; harmless to fill in
+  # even if yours doesn't.
+  long_description: |
+    Purpose: Posts live status of a Prusa 3D printer in a Slack channel and
+    lets people opt in to DM notifications when their print finishes, pauses,
+    or errors. Filament inventory and job pause/resume/cancel exposed as
+    buttons. Runs over Socket Mode, so no public URL or inbound network access
+    is required.
+
+    Owner: <YOUR NAME OR TEAM> — replace this line before submitting.
+
+    Source: https://github.com/artogahr/slack-benchy (open source, MIT).
+    Self-hosted: this workspace's install talks only to its own self-hosted
+    instance and its own printer.
 features:
   bot_user:
     display_name: Benchy

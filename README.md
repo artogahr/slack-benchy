@@ -15,7 +15,7 @@ Single-tenant by design: install it into your own workspace with your own tokens
 You need two tokens. Both come from the same Slack app.
 
 1. Open <https://api.slack.com/apps> → **Create New App → From an app manifest** → pick your workspace.
-2. Paste [`slack-app-manifest.yaml`](slack-app-manifest.yaml). Confirm. Scopes, Socket Mode, and the bot user are now set.
+2. Paste [`slack-app-manifest.yaml`](slack-app-manifest.yaml). Before confirming, edit the `Owner:` line in `long_description` so it names you or your team. (Some IT teams require Purpose + Owner on every Slack app; both are pre-filled, just swap in your name.) Confirm. Scopes, Socket Mode, and the bot user are now set.
 3. **Basic Information → App-Level Tokens**: generate a token with scope `connections:write`. That's your `SLACK_APP_TOKEN` (`xapp-...`).
 4. **Install App → Install to Workspace**: that gives you the `SLACK_BOT_TOKEN` (`xoxb-...`).
 5. In your status channel: `/invite @Benchy`.
